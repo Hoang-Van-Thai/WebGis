@@ -1,0 +1,8 @@
+Flask==3.1.2
+pandas==2.3.3
+numpy==1.26.4
+pymongo[srv]==4.15.1
+python-dotenv==1.2.1
+earthengine-api==1.7.1
+tensorflow==2.20.0
+scikit-learn==1.5.2

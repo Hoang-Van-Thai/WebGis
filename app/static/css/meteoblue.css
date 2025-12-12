@@ -1,0 +1,312 @@
+body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: #e9eef5;
+}
+
+.layout {
+    display: flex;
+}
+/* FIX: Always keep right side (content) full width */
+.content {
+    flex: 1 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+
+/* FIX: prevent content from shrinking */
+main, section {
+    width: 100% !important;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 220px;
+    background: #124673;
+    color: white;
+    position: fixed;       /* cố định sidebar */
+    top: 0;
+    left: 0;
+    bottom: 0;             /* chạy hết chiều cao trang */
+    padding: 20px;
+}
+
+.sidebar .logo {
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.sidebar nav button {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 10px;
+    border: none;
+    background: #457b9d;
+    color: white;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 16px;
+}
+.sidebar nav button.active,
+.sidebar nav button:hover {
+    background: #1d92d0;
+}
+
+
+/* Main content */
+.content {
+    margin-left: 230px !important;
+    flex: 1;
+    padding: 20px 40px;
+}
+
+/* Top bar */
+.topbar {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    background: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    margin-top:-10px;
+    box-shadow: 0 2px 10px #0001;
+}
+
+.locationBox select {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #aaa;
+}
+
+.btnRun {
+    background: #1d92d0;
+    color: white;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.btnRun:hover {
+    background: #0d6ea5;
+}
+
+/* Result */
+.resultPanel {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px #0002;
+    margin-bottom: 25px;
+}
+
+.resultCard ul {
+    padding-left: 20px;
+}
+
+/* Chart */
+.chartPanel {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px #0002;
+}
+/* ===== Forecast Meteoblue Style ===== */
+
+.forecastGrid {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    margin-bottom: 25px;
+}
+
+.dayCard {
+    min-width: 110px;
+    height: 180px;                /* ↑ tăng chiều cao theo ý bạn */
+    background: white;
+    border-radius: 14px;
+    padding: 15px;
+    box-shadow: 0 3px 8px #0002;
+    text-align: center;
+    border-top: 5px solid #1d92d0;
+
+    display: flex;                /* NEW */
+    flex-direction: column;       /* NEW – sắp xếp theo cột */
+    justify-content: space-between; /* NEW – giãn đều nội dung theo height */
+}
+
+
+.dayCard .day {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.dayCard .date {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.dayCard img.icon {
+    width: 50px;
+    margin: 5px 0;
+}
+
+.dayCard .valueMain {
+    font-size: 22px;
+    font-weight: bold;
+    margin: 5px 0;
+}
+
+.dayCard .valueSub {
+    font-size: 16px;
+    color: #555;
+}
+
+.ndvi-good {
+    color: #0b8f38;
+    font-weight: bold;
+}
+.ndvi-bad {
+    color: #b81414;
+    font-weight: bold;
+}
+
+.tvdi-dry {
+    color: #c62828;
+    font-weight: bold;
+}
+.tvdi-wet {
+    color: #1565c0;
+    font-weight: bold;
+}
+/* ===== COLOR BASED ON LEVELS ===== */
+
+.level-hot {
+    background: #ff7043 !important;   /* cam đậm */
+    color: white !important;
+}
+
+.level-warm {
+    background: #ffb74d !important;   /* cam nhạt */
+}
+
+.level-cool {
+    background: #4fc3f7 !important;   /* xanh dương nhạt */
+}
+
+.level-cold {
+    background: #0288d1 !important;   /* xanh dương đậm */
+    color: white !important;
+}
+
+.level-ndvi-poor {
+    background: #c62828 !important;
+    color: white !important;
+}
+
+.level-ndvi-fair {
+    background: #ffca28 !important;
+}
+
+.level-ndvi-good {
+    background: #66bb6a !important;
+    color: white !important;
+}
+
+.level-ndvi-verygood {
+    background: #1b5e20 !important;
+    color: white !important;
+}
+
+.level-tvdi-dry {
+    background: #e53935 !important;
+    color: white !important;
+}
+
+.level-tvdi-normal {
+    background: #ffeb3b !important;
+}
+
+.level-tvdi-wet {
+    background: #29b6f6 !important;
+    color: white !important;
+}
+.selectWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.selectLabel {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+}
+
+/* Search-style Select Box */
+.searchSelect {
+    display: flex;
+    align-items: center;
+    background: #f1f4f8;
+    border-radius: 10px;
+    padding: 8px 12px;
+    border: 1px solid #d0d6dd;
+    width: 240px;
+    gap: 10px;
+}
+
+.searchSelect i {
+    color: #5a646e;
+    font-size: 18px;
+}
+
+.searchSelect select {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 15px;
+    outline: none;
+    cursor: pointer;
+    color: #333;
+    padding: 5px;
+}
+
+.searchSelect select option {
+    color: #000;
+}
+.topbar {
+    background: #124673 !important;   /* màu xanh sidebar */
+    color: white !important;
+    box-shadow: none !important;
+    border-radius: 10px;
+}
+
+/* đổi màu chữ tiêu đề */
+.topbar h1 {
+    color: white !important;
+}
+
+/* ===== BIỂU ĐỒ — THU NHỎ, CĂN GỌN ===== */
+.chartPanel {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px #0002;
+    margin-top: 20px;
+
+    width: 100%;
+    max-width: 900px;       /* GIỚI HẠN ĐỘ RỘNG */
+    margin-left: auto;
+    margin-right: auto;      /* căn giữa panel */
+}
+
+#chartCanvas {
+    width: 100% !important;
+    height: 350px !important;   /* CHO BIỂU ĐỒ THẤP XUỐNG */
+}

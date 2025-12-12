@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Dự báo môi trường</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/meteoblue.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+</head>
+<body>
+
+<div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <h2 class="logo">Dự Báo Môi Trường TP.HCM</h2>
+
+        <nav>
+          <button onclick="switchTab('lst')" id="tab-lst" class="active">
+        <i class="fa-solid fa-temperature-high"></i> LST
+        </button>
+
+        <button onclick="switchTab('ndvi')" id="tab-ndvi">
+            <i class="fa-solid fa-leaf"></i> NDVI
+        </button>
+
+        <button onclick="switchTab('tvdi')" id="tab-tvdi">
+            <i class="fa-solid fa-fire"></i> TVDI
+        </button>
+
+        </nav>
+
+    </aside>
+
+    <!-- Main content -->
+    <main class="content">
+
+        <!-- TOP BAR -->
+        <header class="topbar">
+            <h1 id="titlePage">Dự báo LST</h1>
+                    <div class="locationBox">
+                        <div class="searchSelect">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <select id="xaSelectGlobal">
+                                <option value="">Tìm xã...</option>
+                            </select>
+                            <i class="fa-solid fa-map"></i>
+                        </div>
+                    </div>
+
+
+
+        </header>
+        <section id="forecastGrid" class="forecastGrid"></section>
+
+
+<!--        &lt;!&ndash; RESULT PANEL &ndash;&gt;-->
+<!--        <section class="resultPanel">-->
+<!--            <h2>Kết quả dự báo</h2>-->
+<!--            <div id="resultBox" class="resultCard">-->
+<!--                <p>Chọn mô hình và xã để xem dự báo...</p>-->
+<!--            </div>-->
+<!--        </section>-->
+
+        <!-- CHART ZONE -->
+        <section class="chartPanel">
+            <h2>Biểu đồ xu hướng</h2>
+            <canvas id="chartCanvas"></canvas>
+        </section>
+
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
