@@ -101,11 +101,13 @@ import ee
 import pandas as pd
 from datetime import datetime
 
-SERVICE_ACCOUNT = "gee-auto-export@vigilant-design-403812.iam.gserviceaccount.com"
-KEY_FILE = "service_account/gee-auto-export.json"
+# SERVICE_ACCOUNT = "gee-auto-export@vigilant-design-403812.iam.gserviceaccount.com"
+# KEY_FILE = "service_account/gee-auto-export.json"
+#
+# ee.Initialize(ee.ServiceAccountCredentials(SERVICE_ACCOUNT, KEY_FILE))
+from app.services.gee_init import init_gee
 
-ee.Initialize(ee.ServiceAccountCredentials(SERVICE_ACCOUNT, KEY_FILE))
-
+init_gee()
 PHUONG_XA_ASSET_ID = "projects/vigilant-design-403812/assets/phuongxa"
 TINH_THANH_ASSET_ID = "projects/vigilant-design-403812/assets/tinhthanh"
 TEN_TPHCM = "TP. Hồ Chí Minh"

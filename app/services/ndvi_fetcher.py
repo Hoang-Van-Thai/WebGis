@@ -7,11 +7,13 @@ from datetime import datetime
 import time
 import math
 
-SERVICE_ACCOUNT = "gee-auto-export@vigilant-design-403812.iam.gserviceaccount.com"
-# KEY_FILE = "D:/API/service_account/gee-auto-export.json"
-KEY_FILE = "service_account/gee-auto-export.json"
-ee.Initialize(ee.ServiceAccountCredentials(SERVICE_ACCOUNT, KEY_FILE))
+# SERVICE_ACCOUNT = "gee-auto-export@vigilant-design-403812.iam.gserviceaccount.com"
+# # KEY_FILE = "D:/API/service_account/gee-auto-export.json"
+# KEY_FILE = "service_account/gee-auto-export.json"
+# ee.Initialize(ee.ServiceAccountCredentials(SERVICE_ACCOUNT, KEY_FILE))
+from app.services.gee_init import init_gee
 
+init_gee()
 TINH_THANH = "projects/vigilant-design-403812/assets/tinhthanh"
 PHUONG_XA  = "projects/vigilant-design-403812/assets/phuongxa"
 TEN_TPHCM  = "TP. Hồ Chí Minh"
