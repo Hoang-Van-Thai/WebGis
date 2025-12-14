@@ -310,3 +310,47 @@ main, section {
     width: 100% !important;
     height: 350px !important;   /* CHO BIỂU ĐỒ THẤP XUỐNG */
 }
+/* ===== Loading Overlay ===== */
+.loadingOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.loadingOverlay.hidden {
+  display: none;
+}
+
+.loadingBox {
+  background: white;
+  border-radius: 14px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+  min-width: 260px;
+}
+
+.spinner {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 4px solid #d9e2ec;
+  border-top-color: #1d92d0;
+  animation: spin 0.9s linear infinite;
+}
+
+.loadingText {
+  font-size: 15px;
+  font-weight: 600;
+  color: #124673;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

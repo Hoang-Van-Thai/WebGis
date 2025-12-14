@@ -35,12 +35,30 @@ document.getElementById("xaSelectGlobal").addEventListener("change", function ()
 // =======================================
 // 3) Hàm tự chạy
 // =======================================
-function autoRun() {
-    const xa = document.getElementById("xaSelectGlobal").value;
-    if (!xa) return;
-    runModel(xa);
-    loadChart(xa);
+//function autoRun() {
+//    const xa = document.getElementById("xaSelectGlobal").value;
+//    if (!xa) return;
+//    runModel(xa);
+//    loadChart(xa);
+//}
+async function autoRun() {
+  const xa = document.getElementById("xaSelectGlobal").value;
+  if (!xa) return;
+
+  showLoading("Đang tải mô hình & dự báo...");
+
+  try {
+    await Promise.all([
+      runModel(xa),     // predict
+      loadChart(xa)     // chart
+    ]);
+  } catch (e) {
+    console.error(e);
+  } finally {
+    hideLoading();
+  }
 }
+
 async function loadChart(xa) {
     let url = "";
 
@@ -64,37 +82,42 @@ async function loadChart(xa) {
 // =======================================
 // 4) Gọi API theo tab
 // =======================================
-function runModel(xa) {
-    let url = "";
+//function runModel(xa) {
+//    let url = "";
+//
+//    if (currentModel === "lst") {
+//        url = `/api/lst/auto_predict7?xa=${encodeURIComponent(xa)}`;
+//    }
+//    else if (currentModel === "ndvi") {
+//        url = `/api/ndvi/predict?xa=${encodeURIComponent(xa)}`;
+//    }
+//    else if (currentModel === "tvdi") {
+//        url = `/api/tvdi/auto_predict?xa=${encodeURIComponent(xa)}`;
+//    }
+//
+//    fetch(url)
+//        .then(res => res.json())
+//        .then(data => renderResult(data))
+//        .catch(err => console.error(err));
+//}
 
-    if (currentModel === "lst") {
-        url = `/api/lst/auto_predict7?xa=${encodeURIComponent(xa)}`;
-    }
-    else if (currentModel === "ndvi") {
-        url = `/api/ndvi/predict?xa=${encodeURIComponent(xa)}`;
-    }
-    else if (currentModel === "tvdi") {
-        url = `/api/tvdi/auto_predict?xa=${encodeURIComponent(xa)}`;
-    }
+async function runModel(xa) {
+  let url = "";
 
-    fetch(url)
-        .then(res => res.json())
-        .then(data => renderResult(data))
-        .catch(err => console.error(err));
+  if (currentModel === "lst") {
+    url = `/api/lst/auto_predict7?xa=${encodeURIComponent(xa)}`;
+  } else if (currentModel === "ndvi") {
+    url = `/api/ndvi/predict?xa=${encodeURIComponent(xa)}`;
+  } else if (currentModel === "tvdi") {
+    url = `/api/tvdi/auto_predict?xa=${encodeURIComponent(xa)}`;
+  }
+
+  const res = await fetch(url);
+  const data = await res.json();
+  renderResult(data);
+  return data;
 }
 
-
-// =======================================
-// 5) Nút vẫn hoạt động
-// =======================================
-//document.getElementById("btnRunModel").addEventListener("click", function () {
-//    autoRun();
-//});
-
-
-// =======================================
-// 6) Render kết quả text
-// =======================================
 function renderResult(data) {
 
     renderForecastGrid(data);
@@ -145,13 +168,7 @@ function renderResult(data) {
 }
 
 
-// =======================================
-// 7) Auto load mặc định
-// =======================================
-//window.onload = function () {
-//    document.getElementById("xaSelectGlobal").value = "An Hội Tây";
-//    autoRun();
-//};
+
 window.onload = function () {
     loadXaList().then(() => {
         document.getElementById("xaSelectGlobal").value = "An Hội Tây";
@@ -394,4 +411,18 @@ function renderChart(data) {
             }
         }
     });
+}
+let loadingCount = 0;
+
+function showLoading(text = "Đang xử lý...") {
+  loadingCount++;
+  document.getElementById("loadingText").innerText = text;
+  document.getElementById("loadingOverlay").classList.remove("hidden");
+}
+
+function hideLoading() {
+  loadingCount = Math.max(0, loadingCount - 1);
+  if (loadingCount === 0) {
+    document.getElementById("loadingOverlay").classList.add("hidden");
+  }
 }

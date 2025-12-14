@@ -55,21 +55,20 @@
         <section id="forecastGrid" class="forecastGrid"></section>
 
 
-<!--        &lt;!&ndash; RESULT PANEL &ndash;&gt;-->
-<!--        <section class="resultPanel">-->
-<!--            <h2>Kết quả dự báo</h2>-->
-<!--            <div id="resultBox" class="resultCard">-->
-<!--                <p>Chọn mô hình và xã để xem dự báo...</p>-->
-<!--            </div>-->
-<!--        </section>-->
 
-        <!-- CHART ZONE -->
         <section class="chartPanel">
             <h2>Biểu đồ xu hướng</h2>
             <canvas id="chartCanvas"></canvas>
         </section>
 
     </main>
+</div>
+<!-- Loading Overlay -->
+<div id="loadingOverlay" class="loadingOverlay hidden">
+  <div class="loadingBox">
+    <div class="spinner"></div>
+    <div class="loadingText" id="loadingText">Đang tải dữ liệu...</div>
+  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
