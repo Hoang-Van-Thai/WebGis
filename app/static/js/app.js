@@ -297,7 +297,7 @@ async function loadXaList() {
     const list = await res.json();
 
     const select = document.getElementById("xaSelectGlobal");
-    select.innerHTML = `<option value="">Tìm xã...</option>`;
+    select.innerHTML = `<option value="">Tìm phường/xã...</option>`;
 
     list.forEach(xa => {
         select.innerHTML += `<option value="${xa}">${xa}</option>`;
