@@ -24,3 +24,10 @@ data files/
 # OS
 .DS_Store
 Thumbs.db
+!app/data/
+!app/data/**/
+!app/data/**/*.shp
+!app/data/**/*.shx
+!app/data/**/*.dbf
+!app/data/**/*.prj
+!app/data/**/*.cpg
