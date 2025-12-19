@@ -1,57 +1,94 @@
+
 let currentModel = "lst";
+let trendChart = null;
 
-// =======================================
-// 1) Khi đổi tab → đổi model và load lại
-// =======================================
+// ===================== TAB =====================
 function switchTab(tab) {
-    currentModel = tab;
+  currentModel = tab;
 
-    document.getElementById("tab-lst").classList.remove("active");
-    document.getElementById("tab-ndvi").classList.remove("active");
-    document.getElementById("tab-tvdi").classList.remove("active");
+  ["lst", "ndvi", "tvdi"].forEach(t => {
+    const btn = document.getElementById(`tab-${t}`);
+    if (btn) btn.classList.remove("active");
+  });
+  const activeBtn = document.getElementById(`tab-${tab}`);
+  if (activeBtn) activeBtn.classList.add("active");
 
-    document.getElementById(`tab-${tab}`).classList.add("active");
+  const title = { lst: "Dự báo LST", ndvi: "Dự báo NDVI", tvdi: "Dự báo TVDI" }[tab];
+  const titleEl = document.getElementById("titlePage");
+  if (titleEl) titleEl.innerText = title || "Dự báo";
 
-    const title = {
-        lst: "Dự báo LST",
-        ndvi: "Dự báo NDVI",
-        tvdi: "Dự báo TVDI",
-    }[tab];
+  updateMapPanelsVisibility();
+  autoRun();
 
-    document.getElementById("titlePage").innerText = title;
-
-    autoRun();
+  setTimeout(() => {
+    try {
+      if (tab === "lst" && window.lstMapInstance) window.lstMapInstance.invalidateSize();
+      if (tab === "ndvi" && window.ndviMapInstance) window.ndviMapInstance.invalidateSize();
+      if (tab === "tvdi" && window.tvdiMapInstance) window.tvdiMapInstance.invalidateSize();
+    } catch (e) {}
+  }, 250);
 }
 
+function updateMapPanelsVisibility() {
+  const lstPanel = document.getElementById("lstMapPanel");
+  const ndviPanel = document.getElementById("ndviMapPanel");
+  const tvdiPanel = document.getElementById("tvdiMapPanel");
 
-// =======================================
-// 2) Auto-run khi đổi xã
-// =======================================
-document.getElementById("xaSelectGlobal").addEventListener("change", function () {
+  if (lstPanel) lstPanel.style.display = (currentModel === "lst") ? "block" : "none";
+  if (ndviPanel) ndviPanel.style.display = (currentModel === "ndvi") ? "block" : "none";
+  if (tvdiPanel) tvdiPanel.style.display = (currentModel === "tvdi") ? "block" : "none";
+}
+
+// ===================== INIT =====================
+window.onload = function () {
+  loadXaList().then(() => {
+    const sel = document.getElementById("xaSelectGlobal");
+    if (sel) sel.value = "An Hội Tây";
+    updateMapPanelsVisibility();
     autoRun();
+  });
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  initLstMapUI();
+  initNdviMapUI();
+  initTvdiMapUI();
+
+  const xaSel = document.getElementById("xaSelectGlobal");
+  if (xaSel) {
+    xaSel.addEventListener("change", function () {
+      autoRun();
+    });
+  }
 });
 
+// ===================== LOADING OVERLAY =====================
+let loadingCount = 0;
 
-// =======================================
-// 3) Hàm tự chạy
-// =======================================
-//function autoRun() {
-//    const xa = document.getElementById("xaSelectGlobal").value;
-//    if (!xa) return;
-//    runModel(xa);
-//    loadChart(xa);
-//}
+function showLoading(text = "Đang xử lý...") {
+  loadingCount++;
+  const t = document.getElementById("loadingText");
+  const o = document.getElementById("loadingOverlay");
+  if (t) t.innerText = text;
+  if (o) o.classList.remove("hidden");
+}
+
+function hideLoading() {
+  loadingCount = Math.max(0, loadingCount - 1);
+  if (loadingCount === 0) {
+    const o = document.getElementById("loadingOverlay");
+    if (o) o.classList.add("hidden");
+  }
+}
+
+// ===================== AUTO RUN (forecast + chart) =====================
 async function autoRun() {
-  const xa = document.getElementById("xaSelectGlobal").value;
+  const xa = document.getElementById("xaSelectGlobal")?.value;
   if (!xa) return;
 
   showLoading("Đang tải mô hình & dự báo...");
-
   try {
-    await Promise.all([
-      runModel(xa),     // predict
-      loadChart(xa)     // chart
-    ]);
+    await Promise.all([runModel(xa), loadChart(xa)]);
   } catch (e) {
     console.error(e);
   } finally {
@@ -59,370 +96,574 @@ async function autoRun() {
   }
 }
 
-async function loadChart(xa) {
-    let url = "";
-
-    if (currentModel === "lst") {
-        url = `/api/lst/chart?xa=${encodeURIComponent(xa)}`;
-    }
-    else if (currentModel === "ndvi") {
-        url = `/api/ndvi/chart?xa=${encodeURIComponent(xa)}`;
-    }
-    else if (currentModel === "tvdi") {
-        url = `/api/tvdi/chart?xa=${encodeURIComponent(xa)}`;
-    }
-
-    const res = await fetch(url);
-    const data = await res.json();
-
-    renderChart(data);
-}
-
-
-// =======================================
-// 4) Gọi API theo tab
-// =======================================
-//function runModel(xa) {
-//    let url = "";
-//
-//    if (currentModel === "lst") {
-//        url = `/api/lst/auto_predict7?xa=${encodeURIComponent(xa)}`;
-//    }
-//    else if (currentModel === "ndvi") {
-//        url = `/api/ndvi/predict?xa=${encodeURIComponent(xa)}`;
-//    }
-//    else if (currentModel === "tvdi") {
-//        url = `/api/tvdi/auto_predict?xa=${encodeURIComponent(xa)}`;
-//    }
-//
-//    fetch(url)
-//        .then(res => res.json())
-//        .then(data => renderResult(data))
-//        .catch(err => console.error(err));
-//}
-
 async function runModel(xa) {
   let url = "";
-
-  if (currentModel === "lst") {
-    url = `/api/lst/auto_predict7?xa=${encodeURIComponent(xa)}`;
-  } else if (currentModel === "ndvi") {
-    url = `/api/ndvi/predict?xa=${encodeURIComponent(xa)}`;
-  } else if (currentModel === "tvdi") {
-    url = `/api/tvdi/auto_predict?xa=${encodeURIComponent(xa)}`;
-  }
+  if (currentModel === "lst") url = `/api/lst/auto_predict7?xa=${encodeURIComponent(xa)}`;
+  else if (currentModel === "ndvi") url = `/api/ndvi/predict?xa=${encodeURIComponent(xa)}`;
+  else if (currentModel === "tvdi") url = `/api/tvdi/auto_predict?xa=${encodeURIComponent(xa)}`;
 
   const res = await fetch(url);
   const data = await res.json();
-  renderResult(data);
+  renderForecastGrid(data);
   return data;
 }
 
-function renderResult(data) {
+async function loadChart(xa) {
+  let url = "";
+  if (currentModel === "lst") url = `/api/lst/chart?xa=${encodeURIComponent(xa)}`;
+  else if (currentModel === "ndvi") url = `/api/ndvi/chart?xa=${encodeURIComponent(xa)}`;
+  else if (currentModel === "tvdi") url = `/api/tvdi/chart?xa=${encodeURIComponent(xa)}`;
 
-    renderForecastGrid(data);
-
-    const box = document.getElementById("resultBox");
-    box.innerHTML = "";
-
-    if (data.error) {
-        box.innerHTML = `<p style="color:red;">${data.error}</p>`;
-        return;
-    }
-
-    let html = `<b>Xã:</b> ${data.xa || data.ten_xa}<br><br><ul>`;
-
-    // LST
-    if (data.pred_LST_K) {
-        const lastDate = new Date(data.last_date);
-        data.pred_LST_K.forEach((K, i) => {
-            const C = K - 273.15;
-            const d = new Date(lastDate);
-            d.setDate(d.getDate() + (i + 1) * 7);
-            html += `<li>Tuần ${i + 1} (${d.toISOString().split("T")[0]}): <b>${C.toFixed(2)}°C</b></li>`;
-        });
-    }
-
-    // NDVI
-    if (data.data && data.data[0]?.predicted_ndvi !== undefined) {
-        data.data.forEach(item => {
-            const d = new Date(item.date).toISOString().split("T")[0];
-            html += `<li>Bước ${item.step} — ${d}: <b>${item.predicted_ndvi.toFixed(4)}</b></li>`;
-        });
-    }
-
-    // TVDI
-    if (data.prediction_real) {
-        let [year, month] =
-            data.history_months[data.history_months.length - 1].split("-").map(Number);
-
-        data.prediction_real.forEach(val => {
-            month++;
-            if (month > 12) { month = 1; year++; }
-            html += `<li>Tháng ${year}-${String(month).padStart(2, "0")}: <b>${val.toFixed(4)}</b></li>`;
-        });
-    }
-
-    html += `</ul>`;
-    box.innerHTML = html;
+  const res = await fetch(url);
+  const data = await res.json();
+  renderChart(data);
 }
 
-
-
-window.onload = function () {
-    loadXaList().then(() => {
-        document.getElementById("xaSelectGlobal").value = "An Hội Tây";
-        autoRun();
-    });
-};
-
-// ===================== NGƯỠNG LST =====================
+// ===================== LEVELS =====================
 function getLSTLevel(C) {
-    if(C < 25) return "Mát lạnh";
-    if(C < 30) return "Dễ chịu";
-    if(C < 35) return "Nóng";
-    if(C < 40) return "Rất nóng";
-    return "Nguy hiểm";
+  if (C < 25) return "Mát lạnh";
+  if (C < 30) return "Dễ chịu";
+  if (C < 35) return "Nóng";
+  if (C < 40) return "Rất nóng";
+  return "Nguy hiểm";
 }
-
-// ===================== NGƯỠNG NDVI =====================
 function getNDVILevel(v) {
-    if(v < 0.1) return "Rất kém";
-    if(v < 0.2) return "Kém";
-    if(v < 0.3) return "Trung bình";
-    if(v < 0.5) return "Tốt";
-    return "Rất tốt";
+  if (v < 0.1) return "Rất kém";
+  if (v < 0.2) return "Kém";
+  if (v < 0.3) return "Trung bình";
+  if (v < 0.5) return "Tốt";
+  return "Rất tốt";
 }
-
-// ===================== NGƯỠNG TVDI =====================
 function getTVDILevel(v) {
-    if(v < 0.2) return "Đất ướt";
-    if(v < 0.4) return "Ẩm";
-    if(v < 0.6) return "Bình thường";
-    if(v < 0.8) return "Khô hạn nhẹ";
-    return "Hạn nghiêm trọng";
+  if (v < 0.2) return "Đất ướt";
+  if (v < 0.4) return "Ẩm";
+  if (v < 0.6) return "Bình thường";
+  if (v < 0.8) return "Khô hạn nhẹ";
+  return "Hạn nghiêm trọng";
 }
 
-// =======================================
-// 8) Render Forecast Grid + NGƯỠNG + KHÔNG ICON
-// =======================================
+// ===================== FORECAST GRID =====================
 function renderForecastGrid(data) {
-    const grid = document.getElementById("forecastGrid");
-    grid.innerHTML = "";
+  const grid = document.getElementById("forecastGrid");
+  if (!grid) return;
+  grid.innerHTML = "";
 
-    // =======================
-    // L S T
-    // =======================
-    if (data.pred_LST_K) {
-        const lastDate = new Date(data.last_date);
+  // LST
+  if (data.pred_LST_K) {
+    const lastDate = new Date(data.last_date);
+    data.pred_LST_K.forEach((K, i) => {
+      const C = K - 273.15;
+      const date = new Date(lastDate);
+      date.setDate(date.getDate() + (i + 1) * 7);
 
-        data.pred_LST_K.forEach((K, i) => {
-            const C = K - 273.15;
-            const date = new Date(lastDate);
-            date.setDate(date.getDate() + (i + 1) * 7);
+      const weekday = date.toLocaleDateString("vi-VN", { weekday: "short" });
+      const dateStr = date.toLocaleDateString("vi-VN");
 
-            const weekday = date.toLocaleDateString("vi-VN", { weekday: "short" });
-            const dateStr = date.toLocaleDateString("vi-VN");
+      let color = "#1e88e5";
+      if (C >= 25 && C <= 30) color = "#fbc02d";
+      if (C > 30) color = "#e53935";
 
-            // NGƯỠNG màu
-            let color = "#1e88e5"; // mát
-            if (C >= 25 && C <= 30) color = "#fbc02d"; // ấm
-            if (C > 30) color = "#e53935"; // nóng
-
-            grid.innerHTML += `
-            <div class="dayCard" style="border-top:5px solid ${color}">
-                <div class="day">${weekday}</div>
-                <div class="date">${dateStr}</div>
-                <div class="valueMain" style="color:${color}">${C.toFixed(1)}°C</div>
-                <div class="valueSub">${getLSTLevel(C)}</div>
-
-            </div>`;
-        });
-    }
-
-    // =======================
-    // N D V I
-    // =======================
-    if (data.data && data.data[0]?.predicted_ndvi !== undefined) {
-
-        data.data.forEach(item => {
-            const ndvi = item.predicted_ndvi;
-            const dateStr = new Date(item.date).toLocaleDateString("vi-VN");
-            const weekday = new Date(item.date).toLocaleDateString("vi-VN", { weekday: "short" });
-
-            let color = "#b81414"; // xấu
-            if (ndvi >= 0.2 && ndvi <= 0.4) color = "#f57f17"; // trung bình
-            if (ndvi > 0.4) color = "#0b8f38"; // tốt
-
-            grid.innerHTML += `
-            <div class="dayCard" style="border-top:5px solid ${color}">
-                <div class="day">${weekday}</div>
-                <div class="date">${dateStr}</div>
-                <div class="valueMain" style="color:${color}">${ndvi.toFixed(3)}</div>
-                <div class="valueSub">${getNDVILevel(item.predicted_ndvi)}</div>
-
-            </div>`;
-        });
-    }
-
-    // =======================
-    // T V D I
-    // =======================
-    if (data.prediction_real) {
-        let months = data.history_months;
-        let [year, month] = months[months.length - 1].split("-").map(Number);
-
-        data.prediction_real.forEach(v => {
-            month++;
-            if (month > 12) { month = 1; year++; }
-
-            let color = "#1565c0"; // ướt
-            if (v >= 0.4 && v <= 0.6) color = "#f57f17"; // trung bình
-            if (v > 0.6) color = "#c62828"; // khô hạn
-
-            grid.innerHTML += `
-            <div class="dayCard" style="border-top:5px solid ${color}">
-                 <div style="font-weight: bold; font-size: 18px;" class="monthLabel">Tháng ${month}</div>
-
-                <div class="day">${year}-${String(month).padStart(2,"0")}</div>
-                <div class="valueMain" style="color:${color}">${v.toFixed(3)}</div>
-                <div class="valueSub">${getTVDILevel(v)}</div>
-
-            </div>`;
-        });
-    }
-}
-async function loadXaList() {
-    const res = await fetch("/api/xa/list");
-    const list = await res.json();
-
-    const select = document.getElementById("xaSelectGlobal");
-    select.innerHTML = `<option value="">Tìm phường/xã...</option>`;
-
-    list.forEach(xa => {
-        select.innerHTML += `<option value="${xa}">${xa}</option>`;
+      grid.innerHTML += `
+        <div class="dayCard" style="border-top:5px solid ${color}">
+          <div class="day">${weekday}</div>
+          <div class="date">${dateStr}</div>
+          <div class="valueMain" style="color:${color}">${C.toFixed(1)}°C</div>
+          <div class="valueSub">${getLSTLevel(C)}</div>
+        </div>`;
     });
-}
-let chart; // chart instance global
+  }
 
-async function loadChartLST(xa) {
-    const res = await fetch(`/api/lst/chart?xa=${encodeURIComponent(xa)}`);
-    const data = await res.json();
+  // NDVI
+  if (data.data && data.data[0]?.predicted_ndvi !== undefined) {
+    data.data.forEach(item => {
+      const ndvi = item.predicted_ndvi;
+      const dateObj = new Date(item.date);
+      const dateStr = dateObj.toLocaleDateString("vi-VN");
+      const weekday = dateObj.toLocaleDateString("vi-VN", { weekday: "short" });
 
-    if (data.error) return;
+      let color = "#b81414";
+      if (ndvi >= 0.2 && ndvi <= 0.4) color = "#f57f17";
+      if (ndvi > 0.4) color = "#0b8f38";
 
-    // Gộp lịch sử + dự báo
-    const labels = [
-        ...data.history.map(x => x.date),
-        ...data.forecast.map(x => x.date)
-    ];
-
-    const values = [
-        ...data.history.map(x => x.value - 273.15),
-        ...data.forecast.map(x => x.value - 273.15)
-    ];
-
-    // Nếu chart đã tồn tại → destroy để vẽ lại
-    const ctx = document.getElementById("chartCanvas").getContext("2d");
-    if (chart) chart.destroy();
-
-    chart = new Chart(ctx, {
-        type: "line",
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: "Lịch sử",
-                    data: data.history.map(x => x.value - 273.15),
-                    borderColor: "#1d92d0",
-                    tension: 0.3,
-                },
-                {
-                    label: "Dự báo",
-                    data: [
-                        ...new Array(data.history.length).fill(null),
-                        ...data.forecast.map(x => x.value - 273.15)
-                    ],
-                    borderColor: "#e53935",
-                    borderDash: [6, 6],
-                    tension: 0.3,
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: "top" }
-            },
-            scales: {
-                y: {
-                    title: {
-                        display: true,
-                        text: "Nhiệt độ (°C)"
-                    }
-                }
-            }
-        }
+      grid.innerHTML += `
+        <div class="dayCard" style="border-top:5px solid ${color}">
+          <div class="day">${weekday}</div>
+          <div class="date">${dateStr}</div>
+          <div class="valueMain" style="color:${color}">${ndvi.toFixed(3)}</div>
+          <div class="valueSub">${getNDVILevel(ndvi)}</div>
+        </div>`;
     });
-}
-let trendChart = null;
+  }
 
-function renderChart(data) {
-    const ctx = document.getElementById("chartCanvas").getContext("2d");
+  // TVDI
+  if (data.prediction_real) {
+    const months = data.history_months || [];
+    let [year, month] = months.length ? months[months.length - 1].split("-").map(Number) : [new Date().getFullYear(), new Date().getMonth() + 1];
 
-    const labels = [...data.history.map(x => x.date),
-                    ...data.forecast.map(x => x.date)];
+    data.prediction_real.forEach(v => {
+      month++;
+      if (month > 12) { month = 1; year++; }
 
-    const historyData = data.history.map(x => x.value);
-    const forecastData = data.forecast.map(x => x.value);
+      let color = "#1565c0";
+      if (v >= 0.4 && v <= 0.6) color = "#f57f17";
+      if (v > 0.6) color = "#c62828";
 
-    if (trendChart) trendChart.destroy();
-
-    trendChart = new Chart(ctx, {
-        type: "line",
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: "Lịch sử",
-                    data: historyData.concat(Array(forecastData.length).fill(null)),
-                    borderColor: "#1976d2",
-                    backgroundColor: "#1976d233",
-                    tension: 0.3,
-                    pointRadius: 3
-                },
-                {
-                    label: "Dự báo",
-                    data: Array(historyData.length).fill(null).concat(forecastData),
-                    borderColor: "red",
-                    backgroundColor: "#ff000033",
-                    borderDash: [6, 6],
-                    tension: 0.3,
-                    pointRadius: 4
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: { display: true },
-                y: { display: true }
-            }
-        }
+      grid.innerHTML += `
+        <div class="dayCard" style="border-top:5px solid ${color}">
+          <div style="font-weight:bold;font-size:18px;" class="monthLabel">Tháng ${month}</div>
+          <div class="day">${year}-${String(month).padStart(2,"0")}</div>
+          <div class="valueMain" style="color:${color}">${Number(v).toFixed(3)}</div>
+          <div class="valueSub">${getTVDILevel(Number(v))}</div>
+        </div>`;
     });
-}
-let loadingCount = 0;
-
-function showLoading(text = "Đang xử lý...") {
-  loadingCount++;
-  document.getElementById("loadingText").innerText = text;
-  document.getElementById("loadingOverlay").classList.remove("hidden");
-}
-
-function hideLoading() {
-  loadingCount = Math.max(0, loadingCount - 1);
-  if (loadingCount === 0) {
-    document.getElementById("loadingOverlay").classList.add("hidden");
   }
 }
+
+// ===================== CHART =====================
+function renderChart(data) {
+  const canvas = document.getElementById("chartCanvas");
+  if (!canvas) return;
+
+  const ctx = canvas.getContext("2d");
+  const labels = [...(data.history || []).map(x => x.date), ...(data.forecast || []).map(x => x.date)];
+  const historyData = (data.history || []).map(x => x.value);
+  const forecastData = (data.forecast || []).map(x => x.value);
+
+  if (trendChart) trendChart.destroy();
+
+  trendChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Lịch sử",
+          data: historyData.concat(Array(forecastData.length).fill(null)),
+          borderColor: "#1976d2",
+          backgroundColor: "#1976d233",
+          tension: 0.3,
+          pointRadius: 3
+        },
+        {
+          label: "Dự báo",
+          data: Array(historyData.length).fill(null).concat(forecastData),
+          borderColor: "red",
+          backgroundColor: "#ff000033",
+          borderDash: [6, 6],
+          tension: 0.3,
+          pointRadius: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: { x: { display: true }, y: { display: true } }
+    }
+  });
+}
+
+// ===================== LOAD XA LIST =====================
+async function loadXaList() {
+  const res = await fetch("/api/xa/list");
+  const list = await res.json();
+
+  const select = document.getElementById("xaSelectGlobal");
+  if (!select) return;
+
+  select.innerHTML = `<option value="">Tìm phường/xã...</option>`;
+  list.forEach(xa => {
+    select.innerHTML += `<option value="${xa}">${xa}</option>`;
+  });
+}
+
+/* =========================================================
+   LST MAP
+========================================================= */
+(function () {
+  const V_MIN = 1.0;
+  const V_MAX = 45.0;
+  const PALETTE = ["#0000FF", "#0066FF", "#00FFFF", "#00FF00", "#FFFF00", "#FFCC00","#FF6600", "#FF0000"];
+
+  function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+  function colorOf(v){
+    if (v === null || v === undefined || Number.isNaN(v)) return "#D3D3D3";
+    const t = clamp01((v - V_MIN) / (V_MAX - V_MIN));
+    const i = Math.min(PALETTE.length - 1, Math.floor(t * (PALETTE.length - 1)));
+    return PALETTE[i];
+  }
+
+  let map = null;
+  let layer = null;
+
+  function initMapOnce(){
+    if (map) return;
+    map = L.map("lstLeafletMap", { zoomControl:true, attributionControl:false }).setView([10.78, 106.68], 10);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+    window.lstMapInstance = map;
+    renderLegend();
+  }
+
+  function renderLegend(){
+    const el = document.getElementById("lstMapLegend");
+    if (!el) return;
+
+    const step = (V_MAX - V_MIN) / PALETTE.length;
+    let html = `<div style="display:flex;gap:10px;flex-wrap:wrap;">`;
+    PALETTE.forEach((c, i) => {
+      const a = (V_MIN + i*step).toFixed(1);
+      const b = (V_MIN + (i+1)*step).toFixed(1);
+      html += `
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="width:14px;height:14px;background:${c};display:inline-block;"></span>
+          <span>${a}–${b}°C</span>
+        </div>`;
+    });
+    html += `
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="width:14px;height:14px;background:#D3D3D3;display:inline-block;"></span>
+        <span>No data</span>
+      </div>`;
+    html += `</div>`;
+    el.innerHTML = html;
+  }
+
+  async function loadGeojson(date){
+    const r = await fetch(`/api/lst/geojson?date=${encodeURIComponent(date)}`);
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  }
+
+  async function draw(date){
+    initMapOnce();
+    const gj = await loadGeojson(date);
+    if (layer) layer.remove();
+
+    layer = L.geoJSON(gj, {
+      style: f => ({
+        color: "white",
+        weight: 0.4,
+        fillOpacity: 0.85,
+        fillColor: colorOf(f.properties.lst_c)
+      }),
+      onEachFeature: (f, l) => {
+        const v = f.properties.lst_c;
+        l.bindTooltip(`<b>${f.properties._key}</b><br>LST: ${v == null ? "No data" : v.toFixed(2) + " °C"}`, { sticky: true });
+      }
+    }).addTo(map);
+
+    try { map.fitBounds(layer.getBounds(), { padding:[10,10] }); } catch(e){}
+    setTimeout(() => map.invalidateSize(), 200);
+  }
+
+  async function loadAvailableDates(){
+    const r = await fetch("/api/lst/available_dates");
+    if (!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+    return data.dates || [];
+  }
+
+  function fillDateSelect(selectEl, dates){
+    selectEl.innerHTML = "";
+    for (const d of dates){
+      const opt = document.createElement("option");
+      opt.value = d;
+      opt.textContent = d.split("-").reverse().join("/");
+      selectEl.appendChild(opt);
+    }
+  }
+
+  window.initLstMapUI = async function initLstMapUI() {
+    const btn = document.getElementById("btnLoadLstMap");
+    const dateSelect = document.getElementById("lstMapDate");
+    if (!btn || !dateSelect) return;
+
+    try {
+      showLoading("Đang tải danh sách ngày LST...");
+      const dates = await loadAvailableDates();
+      if (dates.length === 0){
+        btn.disabled = true; dateSelect.innerHTML = "";
+        return;
+      }
+
+      fillDateSelect(dateSelect, dates);
+      dateSelect.value = dates[dates.length - 1];
+
+      btn.addEventListener("click", async () => {
+        showLoading("Đang tải bản đồ LST...");
+        try { await draw(dateSelect.value); }
+        catch (e) { alert("Lỗi bản đồ LST: " + (e.message || e)); }
+        finally { hideLoading(); }
+      });
+
+      if (currentModel === "lst") btn.click();
+    } catch(e){
+      console.error(e);
+    } finally {
+      hideLoading();
+    }
+  };
+})();
+
+/* =========================================================
+   NDVI MAP
+========================================================= */
+(function () {
+  const V_MIN = -0.1;
+  const V_MAX = 1.0;
+  const PALETTE = ['#FF0000', '#FF7F00', '#FFFF00', '#ADFF2F', '#00FF00', '#00FFFF', '#007FFF','#0000FF'];
+
+  function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+  function colorOf(v){
+    if (v === null || v === undefined || Number.isNaN(v)) return "#D3D3D3";
+    const t = clamp01((v - V_MIN) / (V_MAX - V_MIN));
+    const i = Math.min(PALETTE.length - 1, Math.floor(t * (PALETTE.length - 1)));
+    return PALETTE[i];
+  }
+
+  let map = null;
+  let layer = null;
+
+  function initMapOnce(){
+    if (map) return;
+    map = L.map("ndviLeafletMap", { zoomControl:true, attributionControl:false }).setView([10.78, 106.68], 10);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+    window.ndviMapInstance = map;
+    renderLegend();
+  }
+
+  function renderLegend(){
+    const el = document.getElementById("ndviMapLegend");
+    if (!el) return;
+
+    const step = (V_MAX - V_MIN) / PALETTE.length;
+    let html = `<div style="display:flex;gap:10px;flex-wrap:wrap;">`;
+    PALETTE.forEach((c, i) => {
+      const a = (V_MIN + i*step).toFixed(2);
+      const b = (V_MIN + (i+1)*step).toFixed(2);
+      html += `
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="width:14px;height:14px;background:${c};display:inline-block;"></span>
+          <span>${a}–${b}</span>
+        </div>`;
+    });
+    html += `
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="width:14px;height:14px;background:#D3D3D3;display:inline-block;"></span>
+        <span>No data</span>
+      </div>`;
+    html += `</div>`;
+    el.innerHTML = html;
+  }
+
+  async function loadGeojson(date){
+    const r = await fetch(`/api/ndvi/geojson?date=${encodeURIComponent(date)}`);
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  }
+
+  async function draw(date){
+    initMapOnce();
+    const gj = await loadGeojson(date);
+    if (layer) layer.remove();
+
+    layer = L.geoJSON(gj, {
+      style: f => ({
+        color: "white",
+        weight: 0.4,
+        fillOpacity: 0.85,
+        fillColor: colorOf(f.properties.ndvi)
+      }),
+      onEachFeature: (f, l) => {
+        const v = f.properties.ndvi;
+        l.bindTooltip(`<b>${f.properties._key}</b><br>NDVI: ${v == null ? "No data" : Number(v).toFixed(4)}`, { sticky: true });
+      }
+    }).addTo(map);
+
+    try { map.fitBounds(layer.getBounds(), { padding:[10,10] }); } catch(e){}
+    setTimeout(() => map.invalidateSize(), 200);
+  }
+
+  async function loadAvailableDates(){
+    const r = await fetch("/api/ndvi/available_dates");
+    if (!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+    return data.dates || [];
+  }
+
+  function fillDateSelect(selectEl, dates){
+    selectEl.innerHTML = "";
+    for (const d of dates){
+      const opt = document.createElement("option");
+      opt.value = d;
+      opt.textContent = d.split("-").reverse().join("/");
+      selectEl.appendChild(opt);
+    }
+  }
+
+  window.initNdviMapUI = async function initNdviMapUI() {
+    const btn = document.getElementById("btnLoadNdviMap");
+    const dateSelect = document.getElementById("ndviMapDate");
+    if (!btn || !dateSelect) return;
+
+    try {
+      showLoading("Đang tải danh sách ngày NDVI...");
+      const dates = await loadAvailableDates();
+      if (dates.length === 0){
+        btn.disabled = true; dateSelect.innerHTML = "";
+        return;
+      }
+
+      fillDateSelect(dateSelect, dates);
+      dateSelect.value = dates[dates.length - 1];
+
+      btn.addEventListener("click", async () => {
+        showLoading("Đang tải bản đồ NDVI...");
+        try { await draw(dateSelect.value); }
+        catch (e) { alert("Lỗi bản đồ NDVI: " + (e.message || e)); }
+        finally { hideLoading(); }
+      });
+
+      if (currentModel === "ndvi") btn.click();
+    } catch(e){
+      console.error(e);
+    } finally {
+      hideLoading();
+    }
+  };
+})();
+
+/* =========================================================
+   TVDI MAP
+========================================================= */
+(function () {
+  // TVDI nằm trong [0..1]
+  const V_MIN = 0.0;
+  const V_MAX = 1.0;
+
+  // palette xanh (ướt) -> vàng -> đỏ (khô)
+  const PALETTE = ['#066b00', '#0bc400', '#0ce100', '#00ff00', '#ffff00', '#ffcc00', '#ff6600', '#ff0000'];
+
+  function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+  function colorOf(v){
+    if (v === null || v === undefined || Number.isNaN(v)) return "#D3D3D3";
+    const t = clamp01((v - V_MIN) / (V_MAX - V_MIN));
+    const i = Math.min(PALETTE.length - 1, Math.floor(t * (PALETTE.length - 1)));
+    return PALETTE[i];
+  }
+
+  let map = null;
+  let layer = null;
+
+  function initMapOnce(){
+    if (map) return;
+    map = L.map("tvdiLeafletMap", { zoomControl:true, attributionControl:false }).setView([10.78, 106.68], 10);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(map);
+    window.tvdiMapInstance = map;
+    renderLegend();
+  }
+
+  function renderLegend(){
+    const el = document.getElementById("tvdiMapLegend");
+    if (!el) return;
+
+    const step = (V_MAX - V_MIN) / PALETTE.length;
+    let html = `<div style="display:flex;gap:10px;flex-wrap:wrap;">`;
+    PALETTE.forEach((c, i) => {
+      const a = (V_MIN + i*step).toFixed(2);
+      const b = (V_MIN + (i+1)*step).toFixed(2);
+      html += `
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="width:14px;height:14px;background:${c};display:inline-block;"></span>
+          <span>${a}–${b}</span>
+        </div>`;
+    });
+    html += `
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span style="width:14px;height:14px;background:#D3D3D3;display:inline-block;"></span>
+        <span>No data</span>
+      </div>`;
+    html += `</div>`;
+    el.innerHTML = html;
+  }
+
+  async function loadGeojson(month){
+    const r = await fetch(`/api/tvdi/geojson?date=${encodeURIComponent(month)}`);
+    if (!r.ok) throw new Error(await r.text());
+    return r.json();
+  }
+
+  async function draw(month){
+    initMapOnce();
+    const gj = await loadGeojson(month);
+    if (layer) layer.remove();
+
+    layer = L.geoJSON(gj, {
+      style: f => ({
+        color: "white",
+        weight: 0.4,
+        fillOpacity: 0.85,
+        fillColor: colorOf(f.properties.tvdi)
+      }),
+      onEachFeature: (f, l) => {
+        const v = f.properties.tvdi;
+        l.bindTooltip(`<b>${f.properties._key}</b><br>TVDI: ${v == null ? "No data" : Number(v).toFixed(4)}<br>${v == null ? "" : getTVDILevel(Number(v))}`, { sticky: true });
+      }
+    }).addTo(map);
+
+    try { map.fitBounds(layer.getBounds(), { padding:[10,10] }); } catch(e){}
+    setTimeout(() => map.invalidateSize(), 200);
+  }
+
+  async function loadAvailableMonths(){
+    const r = await fetch("/api/tvdi/available_dates");
+    if (!r.ok) throw new Error(await r.text());
+    const data = await r.json();
+    return data.dates || []; // ["YYYY-MM", ...]
+  }
+
+  function fillMonthSelect(selectEl, months){
+    selectEl.innerHTML = "";
+    for (const m of months){
+      const opt = document.createElement("option");
+      opt.value = m;
+      // hiển thị MM/YYYY
+      const parts = m.split("-");
+      opt.textContent = `${parts[1]}/${parts[0]}`;
+      selectEl.appendChild(opt);
+    }
+  }
+
+  window.initTvdiMapUI = async function initTvdiMapUI() {
+    const btn = document.getElementById("btnLoadTvdiMap");
+    const monthSelect = document.getElementById("tvdiMapDate");
+    if (!btn || !monthSelect) return;
+
+    try {
+      showLoading("Đang tải danh sách tháng TVDI...");
+      const months = await loadAvailableMonths();
+
+      if (months.length === 0){
+        btn.disabled = true;
+        monthSelect.innerHTML = "";
+        return;
+      }
+
+      fillMonthSelect(monthSelect, months);
+      monthSelect.value = months[months.length - 1];
+
+      btn.addEventListener("click", async () => {
+        showLoading("Đang tải bản đồ TVDI...");
+        try { await draw(monthSelect.value); }
+        catch (e) { alert("Lỗi bản đồ TVDI: " + (e.message || e)); }
+        finally { hideLoading(); }
+      });
+
+      if (currentModel === "tvdi") btn.click();
+    } catch(e){
+      console.error(e);
+    } finally {
+      hideLoading();
+    }
+  };
+})();

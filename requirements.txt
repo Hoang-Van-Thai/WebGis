@@ -6,3 +6,4 @@ python-dotenv==1.2.1
 earthengine-api==1.7.1
 tensorflow==2.20.0
 scikit-learn==1.5.2
+geopandas

@@ -1,68 +1,340 @@
 
+<!--<!DOCTYPE html>-->
+<!--<html lang="vi">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Dự báo môi trường</title>-->
+<!--    <link rel="stylesheet" href="{{ url_for('static', filename='css/meteoblue.css') }}">-->
+<!--    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">-->
+<!--    <link rel="stylesheet" href="{{ url_for('static', filename='css/lst_map.css') }}">-->
+
+<!--</head>-->
+<!--<body>-->
+
+<!--<div class="layout">-->
+
+<!--    &lt;!&ndash; Sidebar &ndash;&gt;-->
+<!--    <aside class="sidebar">-->
+<!--        <h2 class="logo">Dự Báo Môi Trường TP.HCM</h2>-->
+
+<!--        <nav>-->
+<!--          <button onclick="switchTab('lst')" id="tab-lst" class="active">-->
+<!--        <i class="fa-solid fa-temperature-high"></i> LST-->
+<!--        </button>-->
+
+<!--        <button onclick="switchTab('ndvi')" id="tab-ndvi">-->
+<!--            <i class="fa-solid fa-leaf"></i> NDVI-->
+<!--        </button>-->
+
+<!--        <button onclick="switchTab('tvdi')" id="tab-tvdi">-->
+<!--            <i class="fa-solid fa-fire"></i> TVDI-->
+<!--        </button>-->
+
+<!--        </nav>-->
+
+<!--    </aside>-->
+
+<!--    &lt;!&ndash; Main content &ndash;&gt;-->
+<!--    <main class="content">-->
+
+<!--        &lt;!&ndash; TOP BAR &ndash;&gt;-->
+<!--        <header class="topbar">-->
+<!--            <h1 id="titlePage">Dự báo LST</h1>-->
+<!--                    <div class="locationBox">-->
+<!--                        <div class="searchSelect">-->
+<!--                            <i class="fa-solid fa-magnifying-glass"></i>-->
+<!--                            <select id="xaSelectGlobal">-->
+<!--                                <option value="">Tìm phường/xã...</option>-->
+<!--                            </select>-->
+<!--                            <i class="fa-solid fa-map"></i>-->
+<!--                        </div>-->
+<!--                    </div>-->
+
+
+
+<!--        </header>-->
+<!--        <section id="forecastGrid" class="forecastGrid"></section>-->
+
+
+
+<!--        <section class="chartPanel">-->
+<!--            <h2>Biểu đồ xu hướng</h2>-->
+<!--            <canvas id="chartCanvas"></canvas>-->
+<!--        </section>-->
+<!--       <section class="lstMapPanel" id="lstMapPanel">-->
+
+<!--          <h2 >Bản đồ LST theo ngày</h2>-->
+
+<!--          <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">-->
+<!--            <label>Ngày:</label>-->
+<!--            <select id="lstMapDate"></select>-->
+
+<!--            <button id="btnLoadLstMap">Xem bản đồ</button>-->
+<!--          </div>-->
+
+<!--          <div id="lstLeafletMap"-->
+<!--                style="height:600px; border-radius:12px;background:#f7fbff; border:1px solid #e5e7eb; box-shadow:0 1px 6px rgba(0,0,0,0.06);">-->
+<!--          </div>-->
+
+<!--          <div id="lstMapLegend" style="margin-top:8px;"></div>-->
+<!--        </section>-->
+
+<!--    </main>-->
+<!--</div>-->
+<!--&lt;!&ndash; Loading Overlay &ndash;&gt;-->
+<!--<div id="loadingOverlay" class="loadingOverlay hidden">-->
+<!--  <div class="loadingBox">-->
+<!--    <div class="spinner"></div>-->
+<!--    <div class="loadingText" id="loadingText">Đang tải dữ liệu...</div>-->
+<!--  </div>-->
+<!--</div>-->
+
+<!--<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>-->
+<!--<script src="{{ url_for('static', filename='js/app.js') }}"></script>-->
+<!--<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">-->
+<!--<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>-->
+
+
+
+<!--</body>-->
+<!--</html>-->
+
+
+
+
+
+<!--<!DOCTYPE html>-->
+<!--<html lang="vi">-->
+<!--<head>-->
+<!--  <meta charset="UTF-8" />-->
+<!--  <title>Dự báo môi trường</title>-->
+
+<!--  <link rel="stylesheet" href="{{ url_for('static', filename='css/meteoblue.css') }}">-->
+<!--  <link rel="stylesheet" href="{{ url_for('static', filename='css/lst_map.css') }}">-->
+<!--  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">-->
+
+<!--  &lt;!&ndash; Leaflet &ndash;&gt;-->
+<!--  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />-->
+<!--</head>-->
+
+<!--<body>-->
+<!--<div class="layout">-->
+<!--  &lt;!&ndash; Sidebar &ndash;&gt;-->
+<!--  <aside class="sidebar">-->
+<!--    <h2 class="logo">Dự Báo Môi Trường TP.HCM</h2>-->
+
+<!--    <nav>-->
+<!--      <button onclick="switchTab('lst')" id="tab-lst" class="active">-->
+<!--        <i class="fa-solid fa-temperature-high"></i> LST-->
+<!--      </button>-->
+
+<!--      <button onclick="switchTab('ndvi')" id="tab-ndvi">-->
+<!--        <i class="fa-solid fa-leaf"></i> NDVI-->
+<!--      </button>-->
+
+<!--      <button onclick="switchTab('tvdi')" id="tab-tvdi">-->
+<!--        <i class="fa-solid fa-fire"></i> TVDI-->
+<!--      </button>-->
+<!--    </nav>-->
+<!--  </aside>-->
+
+<!--  &lt;!&ndash; Main content &ndash;&gt;-->
+<!--  <main class="content">-->
+<!--    &lt;!&ndash; TOP BAR &ndash;&gt;-->
+<!--    <header class="topbar">-->
+<!--      <h1 id="titlePage">Dự báo LST</h1>-->
+
+<!--      <div class="locationBox">-->
+<!--        <div class="searchSelect">-->
+<!--          <i class="fa-solid fa-magnifying-glass"></i>-->
+<!--          <select id="xaSelectGlobal">-->
+<!--            <option value="">Tìm phường/xã...</option>-->
+<!--          </select>-->
+<!--          <i class="fa-solid fa-map"></i>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </header>-->
+
+<!--    &lt;!&ndash; Forecast cards &ndash;&gt;-->
+<!--    <section id="forecastGrid" class="forecastGrid"></section>-->
+
+<!--    &lt;!&ndash; Chart &ndash;&gt;-->
+<!--    <section class="chartPanel">-->
+<!--      <h2>Biểu đồ xu hướng</h2>-->
+<!--      <div style="height:320px;">-->
+<!--        <canvas id="chartCanvas"></canvas>-->
+<!--      </div>-->
+<!--    </section>-->
+
+<!--    &lt;!&ndash; LST Map Panel &ndash;&gt;-->
+<!--    <section class="lstMapPanel" id="lstMapPanel">-->
+<!--      <h2>Bản đồ LST theo ngày</h2>-->
+
+<!--      <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">-->
+<!--        <label>Ngày:</label>-->
+<!--        <select id="lstMapDate"></select>-->
+<!--        <button id="btnLoadLstMap">Xem bản đồ</button>-->
+<!--      </div>-->
+
+<!--      <div id="lstLeafletMap"-->
+<!--           style="height:600px; border-radius:12px;background:#f7fbff; border:1px solid #e5e7eb; box-shadow:0 1px 6px rgba(0,0,0,0.06);">-->
+<!--      </div>-->
+
+<!--      <div id="lstMapLegend" style="margin-top:8px;"></div>-->
+<!--    </section>-->
+
+<!--    &lt;!&ndash; NDVI Map Panel &ndash;&gt;-->
+<!--    <section class="lstMapPanel" id="ndviMapPanel" style="display:none;">-->
+<!--      <h2>Bản đồ NDVI theo ngày</h2>-->
+
+<!--      <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">-->
+<!--        <label>Ngày:</label>-->
+<!--        <select id="ndviMapDate"></select>-->
+<!--        <button id="btnLoadNdviMap">Xem bản đồ</button>-->
+<!--      </div>-->
+
+<!--      <div id="ndviLeafletMap"-->
+<!--           style="height:600px; border-radius:12px;background:#f7fbff; border:1px solid #e5e7eb; box-shadow:0 1px 6px rgba(0,0,0,0.06);">-->
+<!--      </div>-->
+
+<!--      <div id="ndviMapLegend" style="margin-top:8px;"></div>-->
+<!--    </section>-->
+<!--  </main>-->
+<!--</div>-->
+
+<!--&lt;!&ndash; Loading Overlay &ndash;&gt;-->
+<!--<div id="loadingOverlay" class="loadingOverlay hidden">-->
+<!--  <div class="loadingBox">-->
+<!--    <div class="spinner"></div>-->
+<!--    <div class="loadingText" id="loadingText">Đang tải dữ liệu...</div>-->
+<!--  </div>-->
+<!--</div>-->
+
+<!--&lt;!&ndash; libs &ndash;&gt;-->
+<!--<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>-->
+<!--<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>-->
+
+<!--&lt;!&ndash; app &ndash;&gt;-->
+<!--<script src="{{ url_for('static', filename='js/app.js') }}"></script>-->
+<!--</body>-->
+<!--</html>-->
+
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>Dự báo môi trường</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/meteoblue.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <title>Dự báo môi trường</title>
 
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/meteoblue.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/lst_map.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
-<body>
 
+<body>
 <div class="layout">
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <h2 class="logo">Dự Báo Môi Trường TP.HCM</h2>
-
-        <nav>
-          <button onclick="switchTab('lst')" id="tab-lst" class="active">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <h2 class="logo">Dự Báo Môi Trường TP.HCM</h2>
+    <nav>
+      <button onclick="switchTab('lst')" id="tab-lst" class="active">
         <i class="fa-solid fa-temperature-high"></i> LST
-        </button>
+      </button>
 
-        <button onclick="switchTab('ndvi')" id="tab-ndvi">
-            <i class="fa-solid fa-leaf"></i> NDVI
-        </button>
+      <button onclick="switchTab('ndvi')" id="tab-ndvi">
+        <i class="fa-solid fa-leaf"></i> NDVI
+      </button>
 
-        <button onclick="switchTab('tvdi')" id="tab-tvdi">
-            <i class="fa-solid fa-fire"></i> TVDI
-        </button>
+      <button onclick="switchTab('tvdi')" id="tab-tvdi">
+        <i class="fa-solid fa-fire"></i> TVDI
+      </button>
+    </nav>
+  </aside>
 
-        </nav>
+  <!-- Main content -->
+  <main class="content">
 
-    </aside>
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <h1 id="titlePage">Dự báo LST</h1>
 
-    <!-- Main content -->
-    <main class="content">
+      <div class="locationBox">
+        <div class="searchSelect">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <select id="xaSelectGlobal">
+            <option value="">Tìm phường/xã...</option>
+          </select>
+          <i class="fa-solid fa-map"></i>
+        </div>
+      </div>
+    </header>
 
-        <!-- TOP BAR -->
-        <header class="topbar">
-            <h1 id="titlePage">Dự báo LST</h1>
-                    <div class="locationBox">
-                        <div class="searchSelect">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                            <select id="xaSelectGlobal">
-                                <option value="">Tìm phường/xã...</option>
-                            </select>
-                            <i class="fa-solid fa-map"></i>
-                        </div>
-                    </div>
+    <!-- Forecast cards -->
+    <section id="forecastGrid" class="forecastGrid"></section>
 
+    <!-- Chart -->
+    <section class="chartPanel">
+      <h2>Biểu đồ xu hướng</h2>
+      <div style="height:320px;">
+        <canvas id="chartCanvas"></canvas>
+      </div>
+    </section>
 
+    <!-- LST Map Panel -->
+    <section class="lstMapPanel" id="lstMapPanel">
+      <h2>Bản đồ LST theo ngày</h2>
 
-        </header>
-        <section id="forecastGrid" class="forecastGrid"></section>
+      <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+        <label>Ngày:</label>
+        <select id="lstMapDate"></select>
+        <button id="btnLoadLstMap">Xem bản đồ</button>
+      </div>
 
+      <div id="lstLeafletMap"
+           style="height:600px; border-radius:12px;background:#f7fbff; border:1px solid #e5e7eb; box-shadow:0 1px 6px rgba(0,0,0,0.06);">
+      </div>
+      <div id="lstMapLegend" style="margin-top:8px;"></div>
+    </section>
 
+    <!-- NDVI Map Panel -->
+    <section class="lstMapPanel" id="ndviMapPanel" style="display:none;">
+      <h2>Bản đồ NDVI theo ngày</h2>
 
-        <section class="chartPanel">
-            <h2>Biểu đồ xu hướng</h2>
-            <canvas id="chartCanvas"></canvas>
-        </section>
+      <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+        <label>Ngày:</label>
+        <select id="ndviMapDate"></select>
+        <button id="btnLoadNdviMap">Xem bản đồ</button>
+      </div>
 
-    </main>
+      <div id="ndviLeafletMap"
+           style="height:600px; border-radius:12px;background:#f7fbff; border:1px solid #e5e7eb; box-shadow:0 1px 6px rgba(0,0,0,0.06);">
+      </div>
+      <div id="ndviMapLegend" style="margin-top:8px;"></div>
+    </section>
+
+    <!-- TVDI Map Panel -->
+    <section class="lstMapPanel" id="tvdiMapPanel" style="display:none;">
+      <h2>Bản đồ TVDI theo tháng</h2>
+
+      <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+        <label>Tháng:</label>
+        <select id="tvdiMapDate"></select>
+        <button id="btnLoadTvdiMap">Xem bản đồ</button>
+      </div>
+
+      <div id="tvdiLeafletMap"
+           style="height:600px; border-radius:12px;background:#f7fbff; border:1px solid #e5e7eb; box-shadow:0 1px 6px rgba(0,0,0,0.06);">
+      </div>
+      <div id="tvdiMapLegend" style="margin-top:8px;"></div>
+    </section>
+
+  </main>
 </div>
+
 <!-- Loading Overlay -->
 <div id="loadingOverlay" class="loadingOverlay hidden">
   <div class="loadingBox">
@@ -71,7 +343,11 @@
   </div>
 </div>
 
+<!-- libs -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- app -->
 <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
