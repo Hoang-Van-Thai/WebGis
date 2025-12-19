@@ -6,9 +6,14 @@ from shapely.geometry import MultiPolygon
 from app.db.mongo import ndvi_col
 import os
 
-# /.../app/services -> /.../app
-APP_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-DATA_DIR = os.getenv("GIS_DATA_DIR", os.path.join(APP_DIR, "data"))
+# # /.../app/services -> /.../app
+# APP_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+# DATA_DIR = os.getenv("GIS_DATA_DIR", os.path.join(APP_DIR, "data"))
+#
+# PROVINCE_SHP = os.path.join(DATA_DIR, "vn_province", "vn_province.shp")
+# WARDS_SHP    = os.path.join(DATA_DIR, "vn_wards", "vn_wards.shp")
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))  # /app/app
+DATA_DIR = os.path.join(BASE_DIR, "data")
 
 PROVINCE_SHP = os.path.join(DATA_DIR, "vn_province", "vn_province.shp")
 WARDS_SHP    = os.path.join(DATA_DIR, "vn_wards", "vn_wards.shp")

@@ -6,14 +6,17 @@ from app.db.mongo import lst_col
 import os
 
 # /.../app/services -> /.../app
-APP_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-DATA_DIR = os.getenv("GIS_DATA_DIR", os.path.join(APP_DIR, "data"))
+# APP_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+# DATA_DIR = os.getenv("GIS_DATA_DIR", os.path.join(APP_DIR, "data"))
+#
+# PROVINCE_SHP = os.path.join(DATA_DIR, "vn_province", "vn_province.shp")
+# WARDS_SHP    = os.path.join(DATA_DIR, "vn_wards", "vn_wards.shp")
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))  # /app/app
+DATA_DIR = os.path.join(BASE_DIR, "data")
 
 PROVINCE_SHP = os.path.join(DATA_DIR, "vn_province", "vn_province.shp")
 WARDS_SHP    = os.path.join(DATA_DIR, "vn_wards", "vn_wards.shp")
-# # CHỈNH PATH cho đúng máy chạy server
-# PROVINCE_SHP = r"D:\API\vn_province\vn_province.shp"
-# WARDS_SHP = r"D:\API\vn_wards\vn_wards.shp"
+
 TPHCM_NAMES = {
     "tp. hồ chí minh",
     "thành phố hồ chí minh",
