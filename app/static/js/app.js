@@ -396,7 +396,7 @@ async function loadXaList() {
         finally { hideLoading(); }
       });
 
-      if (currentModel === "lst") btn.click();
+//      if (currentModel === "lst") btn.click();
     } catch(e){
       console.error(e);
     } finally {
