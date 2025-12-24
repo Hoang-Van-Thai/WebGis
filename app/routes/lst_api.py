@@ -44,12 +44,53 @@ def lst_geojson():
         return jsonify(gj)
     except Exception as e:
         return Response(str(e), status=500)
+# @lst_bp.get("/available_dates")
+# def lst_available_dates():
+#     """
+#     Trả về danh sách ngày có trong DB (yyyy-mm-dd), đã sort tăng dần.
+#     """
+#     docs = list(lst_col.find({}, {"_id": 0, "date": 1}))
+#     if not docs:
+#         return jsonify({"dates": []})
+#
+#     df = pd.DataFrame(docs)
+#     df["date"] = pd.to_datetime(df["date"], errors="coerce")
+#     df = df.dropna(subset=["date"])
+#
+#     # normalize về ngày (00:00) và unique
+#     dates = sorted({d.normalize() for d in df["date"]})
+#     out = [d.strftime("%Y-%m-%d") for d in dates]
+#     return jsonify({"dates": out})
 @lst_bp.get("/available_dates")
 def lst_available_dates():
     """
-    Trả về danh sách ngày có trong DB (yyyy-mm-dd), đã sort tăng dần.
+    Trả về danh sách ngày có trong DB (yyyy-mm-dd), sort tăng dần.
+    - Mặc định: trả full như cũ (KHÔNG làm hỏng dropdown hiện tại)
+    - Nếu truyền ?around=YYYY-MM-DD&window=60: trả các ngày trong khoảng quanh ngày đó
     """
-    docs = list(lst_col.find({}, {"_id": 0, "date": 1}))
+    around = request.args.get("around")          # optional
+    window = int(request.args.get("window", 30)) # optional, default 60
+
+    # ✅ Mode A: trả window quanh 1 ngày (nhẹ)
+    if around:
+        t = pd.to_datetime(around, errors="coerce")
+        if pd.isna(t):
+            return jsonify({"dates": []})
+
+        t = t.normalize()
+        start = (t - pd.Timedelta(days=window)).to_pydatetime()
+        end = (t + pd.Timedelta(days=window)).to_pydatetime()
+
+        docs = list(
+            lst_col.find(
+                {"date": {"$gte": start, "$lte": end}},
+                {"_id": 0, "date": 1}
+            )
+        )
+    else:
+        # ✅ Mode B: giữ nguyên như code cũ (trả full)
+        docs = list(lst_col.find({}, {"_id": 0, "date": 1}))
+
     if not docs:
         return jsonify({"dates": []})
 
@@ -57,7 +98,6 @@ def lst_available_dates():
     df["date"] = pd.to_datetime(df["date"], errors="coerce")
     df = df.dropna(subset=["date"])
 
-    # normalize về ngày (00:00) và unique
     dates = sorted({d.normalize() for d in df["date"]})
     out = [d.strftime("%Y-%m-%d") for d in dates]
     return jsonify({"dates": out})

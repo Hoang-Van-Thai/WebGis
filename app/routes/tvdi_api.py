@@ -5,7 +5,8 @@ from flask import Blueprint, request, jsonify, Response
 import pandas as pd
 from app.db.mongo import tvdi_col
 from app.services.tvdi_map_service import get_hcm_wards_geojson_tvdi
-
+from app.services.tvdi_auto_predict import auto_predict_tvdi_7
+from app.services.tvdi_auto_predict import tvdi_history_with_forecast_7
 
 tvdi_bp = Blueprint("tvdi", __name__)
 
@@ -49,3 +50,17 @@ def tvdi_available_dates():
     # Lấy "YYYY-MM" unique rồi sort
     months = sorted(set(df["date"].dt.to_period("M").astype(str).tolist()))
     return jsonify({"dates": months})
+@tvdi_bp.route("/auto_predict7", methods=["GET"])
+def auto_predict7():
+    xa = request.args.get("xa")
+    if not xa:
+        return jsonify({"error": "Thiếu tham số xa"}), 400
+
+    result = auto_predict_tvdi_7(xa)
+    return jsonify(result)
+@tvdi_bp.route("/chart7", methods=["GET"])
+def tvdi_chart7():
+    xa = request.args.get("xa")
+    if not xa:
+        return jsonify({"error": "Thiếu tham số xa"}), 400
+    return jsonify(tvdi_history_with_forecast_7(xa))
