@@ -10,4 +10,5 @@ services:
       - .env
     volumes:
       - ./service_account:/app/service_account:ro
+      - ./app/data:/app/app/data:ro
     restart: unless-stopped
